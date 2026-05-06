@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ day.isoformat() }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('calendar.month_view', year=day.year, month=day.month) }}">&laquo; Back to month</a></p>
+<h1>{{ day.strftime('%A, %B %d, %Y') }}</h1>
+
+<table class="data">
+    <thead>
+        <tr><th>Client</th><th>Hours</th><th>Rate</th><th>Notes</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for s in sessions %}
+        <tr>
+            <form method="post" action="{{ url_for('calendar.edit_session', sid=s.id) }}" class="row-form" id="sess-{{ s.id }}"></form>
+            <td dir="auto">{{ s.client_name }}{% if s.client_archived %} <em>(archived)</em>{% endif %}</td>
+            <td><input form="sess-{{ s.id }}" type="number" name="hours" value="{{ '%g' % s.hours }}" step="any" min="0" required></td>
+            <td><input form="sess-{{ s.id }}" type="number" name="rate" value="{{ '%g' % s.rate }}" step="0.01" min="0" required></td>
+            <td><input form="sess-{{ s.id }}" type="text" name="notes" value="{{ s.notes }}" dir="auto"></td>
+            <td class="actions">
+                <button form="sess-{{ s.id }}" type="submit">Save</button>
+                <form method="post" action="{{ url_for('calendar.delete_session', sid=s.id) }}" class="inline">
+                    <button type="submit" class="danger" title="Delete">x</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="5"><em>No sessions logged this day.</em></td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h2>Add session</h2>
+<form method="post" action="{{ url_for('calendar.create_session', day=day.isoformat()) }}" class="add-session">
+    <input type="hidden" name="client_id" id="client_id" value="">
+    <label>
+        Client:
+        <input type="text" id="client_name_display" placeholder="Type to search..."
+               hx-get="{{ url_for('clients.autocomplete') }}"
+               hx-trigger="keyup changed delay:150ms"
+               hx-target="#autocomplete-results"
+               name="q" autocomplete="off" dir="auto">
+    </label>
+    <div id="autocomplete-results"></div>
+    <label>
+        Hours:
+        <input type="number" id="hours" name="hours" value="1" step="any" min="0" required>
+    </label>
+    <label>
+        Notes:
+        <input type="text" name="notes" dir="auto">
+    </label>
+    <button type="submit" id="add-session-btn" disabled>Add</button>
+</form>
+
+<script>
+(function () {
+    var results = document.getElementById('autocomplete-results');
+    if (!results) return;
+    results.addEventListener('click', function (e) {
+        var btn = e.target.closest('.ac-pick');
+        if (!btn) return;
+        e.preventDefault();
+        document.getElementById('client_id').value = btn.dataset.id;
+        document.getElementById('client_name_display').value = btn.dataset.name;
+        document.getElementById('add-session-btn').disabled = false;
+        results.innerHTML = '';
+        document.getElementById('hours').focus();
+    });
+})();
+</script>
+{% endblock %}

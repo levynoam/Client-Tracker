@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Clients{% endblock %}
+{% block content %}
+<h1>Clients <small>({{ active_profile.name if active_profile }})</small></h1>
+
+<form method="post" action="{{ url_for('clients.create') }}" class="row">
+    <input type="text" name="name" placeholder="Client name" required>
+    <input type="number" name="rate" placeholder="Rate / hour" step="0.01" min="0" required>
+    <button type="submit">Add</button>
+</form>
+
+<p>
+    {% if show_archived %}
+        <a href="{{ url_for('clients.index') }}">Hide archived</a>
+    {% else %}
+        <a href="{{ url_for('clients.index', archived=1) }}">Show archived</a>
+    {% endif %}
+</p>
+
+<table class="data">
+    <thead>
+        <tr><th>Name</th><th>Rate / hour</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for c in clients %}
+        <tr>
+            <td>
+                <form method="post" action="{{ url_for('clients.edit', cid=c.id) }}" class="inline" id="cli-{{ c.id }}">
+                    <input type="text" name="name" value="{{ c.name }}" required dir="auto">
+            </td>
+            <td>
+                    <input type="number" name="rate" value="{{ '%g' % c.rate }}" step="0.01" min="0" required>
+                    <button type="submit">Save</button>
+                </form>
+            </td>
+            <td>{{ "archived" if c.archived else "active" }}</td>
+            <td class="actions">
+                {% if not c.archived %}
+                <form method="post" action="{{ url_for('clients.archive', cid=c.id) }}" class="inline">
+                    <button type="submit">Archive</button>
+                </form>
+                {% else %}
+                <form method="post" action="{{ url_for('clients.restore', cid=c.id) }}" class="inline">
+                    <button type="submit">Restore</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="4"><em>No clients yet.</em></td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

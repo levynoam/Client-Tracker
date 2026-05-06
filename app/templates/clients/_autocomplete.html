@@ -1,0 +1,16 @@
+{# HTMX autocomplete fragment. Renders a <ul> of matching clients. #}
+{% if clients %}
+<ul class="autocomplete-list">
+    {% for c in clients %}
+    <li>
+        <button type="button" class="ac-pick"
+                data-id="{{ c.id }}"
+                data-name="{{ c.name }}">
+            {{ c.name }} <small>({{ '%g' % c.rate }}/hr)</small>
+        </button>
+    </li>
+    {% endfor %}
+</ul>
+{% elif q %}
+<p class="muted">No matching client. Add one in the Clients tab first.</p>
+{% endif %}

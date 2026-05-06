@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Calendar — {{ month_name }} {{ year }}{% endblock %}
+{% block content %}
+<div class="cal-header">
+    <a class="nav" href="{{ url_for('calendar.month_view', year=prev_y, month=prev_m) }}">&laquo; Prev</a>
+    <h1>{{ month_name }} {{ year }}</h1>
+    <a class="nav" href="{{ url_for('calendar.month_view', year=next_y, month=next_m) }}">Next &raquo;</a>
+</div>
+
+<table class="calendar">
+    <thead>
+        <tr>
+            <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for week in weeks %}
+        <tr>
+        {% for cell in week %}
+            {% if cell.date %}
+                <td class="day{% if cell.date == today %} today{% endif %}">
+                    <a href="{{ url_for('calendar.day_view', day=cell.date.isoformat()) }}">
+                        <div class="day-num">{{ cell.date.day }}</div>
+                        {% if cell.sessions %}
+                            <div class="day-stats">
+                                <strong>{{ '%g' % cell.hours }}</strong> hrs
+                                <span class="muted">({{ cell.sessions }})</span>
+                            </div>
+                        {% endif %}
+                    </a>
+                </td>
+            {% else %}
+                <td class="day empty"></td>
+            {% endif %}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

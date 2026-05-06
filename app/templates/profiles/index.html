@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Profiles{% endblock %}
+{% block content %}
+<h1>Profiles</h1>
+
+<form method="post" action="{{ url_for('profiles.create') }}" class="row">
+    <input type="text" name="name" placeholder="New profile name" required>
+    <button type="submit">Create</button>
+</form>
+
+<p>
+    {% if show_archived %}
+        <a href="{{ url_for('profiles.index') }}">Hide archived</a>
+    {% else %}
+        <a href="{{ url_for('profiles.index', archived=1) }}">Show archived</a>
+    {% endif %}
+</p>
+
+<table class="data">
+    <thead>
+        <tr><th>Name</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for p in profiles %}
+        <tr>
+            <td>
+                <form method="post" action="{{ url_for('profiles.rename', pid=p.id) }}" class="inline">
+                    <input type="text" name="name" value="{{ p.name }}" required>
+                    <button type="submit">Save</button>
+                </form>
+            </td>
+            <td>{{ "archived" if p.archived else "active" }}</td>
+            <td class="actions">
+                {% if not p.archived %}
+                    {% if not active_profile or active_profile.id != p.id %}
+                    <form method="post" action="{{ url_for('profiles.switch') }}" class="inline">
+                        <input type="hidden" name="profile_id" value="{{ p.id }}">
+                        <button type="submit">Set active</button>
+                    </form>
+                    {% else %}
+                    <span class="badge">active</span>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('profiles.archive', pid=p.id) }}" class="inline">
+                        <button type="submit"
+                            {% if active_profile and active_profile.id == p.id %}disabled
+                            title="Switch profile before archiving"{% endif %}>
+                            Archive
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{{ url_for('profiles.restore', pid=p.id) }}" class="inline">
+                        <button type="submit">Restore</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="3"><em>No profiles yet — create one above to get started.</em></td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

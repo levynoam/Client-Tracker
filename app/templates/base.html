@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Clinic Clients{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='htmx.min.js') }}" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">Clinic Clients</div>
+    <nav class="tabs">
+        <a href="{{ url_for('calendar.month_view') }}"
+           class="{% if request.blueprint == 'calendar' %}active{% endif %}">Calendar</a>
+        <a href="{{ url_for('clients.index') }}"
+           class="{% if request.blueprint == 'clients' %}active{% endif %}">Clients</a>
+        <a href="{{ url_for('billing.index') }}"
+           class="{% if request.blueprint == 'billing' %}active{% endif %}">Billing</a>
+        <a href="{{ url_for('profiles.index') }}"
+           class="{% if request.blueprint == 'profiles' %}active{% endif %}">Profiles</a>
+    </nav>
+    <form method="post" action="{{ url_for('profiles.switch') }}" class="profile-switch">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <select name="profile_id" onchange="this.form.submit()">
+            {% if not active_profile %}
+                <option value="" disabled selected>— select profile —</option>
+            {% endif %}
+            {% for p in all_profiles %}
+                <option value="{{ p.id }}"
+                    {% if active_profile and active_profile.id == p.id %}selected{% endif %}>
+                    {{ p.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for cat, msg in messages %}
+            <li class="flash flash-{{ cat }}">{{ msg }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endwith %}
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>
