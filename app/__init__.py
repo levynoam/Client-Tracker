@@ -13,10 +13,13 @@ from .routes import billing, calendar, clients, profiles
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
+    # Allow DATABASE path via environment variable, or use default.
     default_db = Path(app.root_path).parent / "data" / "app.sqlite3"
+    db_path = os.environ.get("DATABASE") or str(default_db)
+    
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-change-me"),
-        DATABASE=str(default_db),
+        DATABASE=db_path,
     )
     if test_config:
         app.config.update(test_config)
