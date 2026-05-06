@@ -17,6 +17,8 @@
             <th>Hours</th>
             <th>Rate</th>
             <th>Total</th>
+            <th>Invoice sent</th>
+            <th>Invoice paid</th>
         </tr>
     </thead>
     <tbody>
@@ -32,9 +34,23 @@
                 {% endif %}
             </td>
             <td>{{ '%g' % r.total_amount }}</td>
+            {% for field in ['invoice_sent', 'invoice_paid'] %}
+            <td class="status-cell">
+                <form method="post" action="{{ url_for('billing.set_status') }}" class="inline">
+                    <input type="hidden" name="client_id" value="{{ r.client_id }}">
+                    <input type="hidden" name="year"      value="{{ year }}">
+                    <input type="hidden" name="month"     value="{{ month }}">
+                    <input type="hidden" name="field"     value="{{ field }}">
+                    <input type="hidden" name="value"     value="{{ 0 if r[field] else 1 }}">
+                    <input type="checkbox"
+                           {% if r[field] %}checked{% endif %}
+                           onchange="this.form.submit()">
+                </form>
+            </td>
+            {% endfor %}
         </tr>
     {% else %}
-        <tr><td colspan="4"><em>No sessions in this month.</em></td></tr>
+        <tr><td colspan="6"><em>No sessions in this month.</em></td></tr>
     {% endfor %}
     </tbody>
     {% if rows %}
@@ -44,6 +60,8 @@
             <th>{{ '%g' % grand_hours }}</th>
             <th></th>
             <th>{{ '%g' % grand_total }}</th>
+            <th></th>
+            <th></th>
         </tr>
     </tfoot>
     {% endif %}

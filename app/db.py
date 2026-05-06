@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_profile_date ON sessions(profile_id, date);
 CREATE INDEX IF NOT EXISTS idx_sessions_client ON sessions(client_id);
+
+CREATE TABLE IF NOT EXISTS billing_status (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id    INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    client_id     INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    year          INTEGER NOT NULL,
+    month         INTEGER NOT NULL,
+    invoice_sent  INTEGER NOT NULL DEFAULT 0,
+    invoice_paid  INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (profile_id, client_id, year, month)
+);
+CREATE INDEX IF NOT EXISTS idx_billing_status_lookup
+    ON billing_status(profile_id, year, month);
 """
 
 

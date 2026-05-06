@@ -5,7 +5,7 @@ import csv
 import io
 from datetime import date
 
-from flask import Blueprint, Response, abort, g, render_template, request
+from flask import Blueprint, Response, abort, g, redirect, render_template, request, url_for
 
 from ..db import get_db
 
@@ -38,23 +38,32 @@ def _parse_year_month(args) -> tuple[int, int]:
 
 
 def _query_billing(profile_id: int, year: int, month: int):
-    """Return list of rows: client_name, total_hours, min_rate, max_rate, total_amount."""
+    """Return list of rows: client_id, client_name, total_hours, min_rate, max_rate,
+    total_amount, invoice_sent, invoice_paid."""
     db = get_db()
     prefix = f"{year:04d}-{month:02d}-"
     rows = db.execute(
         """
-        SELECT c.name AS client_name,
+        SELECT c.id   AS client_id,
+               c.name AS client_name,
                SUM(s.hours) AS total_hours,
-               MIN(s.rate) AS min_rate,
-               MAX(s.rate) AS max_rate,
-               SUM(s.hours * s.rate) AS total_amount
+               MIN(s.rate)  AS min_rate,
+               MAX(s.rate)  AS max_rate,
+               SUM(s.hours * s.rate) AS total_amount,
+               COALESCE(b.invoice_sent, 0) AS invoice_sent,
+               COALESCE(b.invoice_paid, 0) AS invoice_paid
         FROM sessions s
         JOIN clients c ON c.id = s.client_id
+        LEFT JOIN billing_status b
+            ON b.profile_id = s.profile_id
+            AND b.client_id = c.id
+            AND b.year = ?
+            AND b.month = ?
         WHERE s.profile_id = ? AND s.date LIKE ?
-        GROUP BY c.id, c.name
+        GROUP BY c.id, c.name, b.invoice_sent, b.invoice_paid
         ORDER BY c.name
         """,
-        (profile_id, prefix + "%"),
+        (year, month, profile_id, prefix + "%"),
     ).fetchall()
     return rows
 
@@ -84,7 +93,7 @@ def export_csv():
 
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["Client", "Hours", "Rate (min)", "Rate (max)", "Total"])
+    writer.writerow(["Client", "Hours", "Rate (min)", "Rate (max)", "Total", "Invoice sent", "Invoice paid"])
     grand_hours = 0.0
     grand_total = 0.0
     for r in rows:
@@ -95,12 +104,14 @@ def export_csv():
                 f"{r['min_rate']:g}",
                 f"{r['max_rate']:g}",
                 f"{r['total_amount']:g}",
+                "yes" if r["invoice_sent"] else "no",
+                "yes" if r["invoice_paid"] else "no",
             ]
         )
         grand_hours += r["total_hours"] or 0
         grand_total += r["total_amount"] or 0
     writer.writerow([])
-    writer.writerow(["TOTAL", f"{grand_hours:g}", "", "", f"{grand_total:g}"])
+    writer.writerow(["TOTAL", f"{grand_hours:g}", "", "", f"{grand_total:g}", "", ""])
 
     profile_name = g.active_profile["name"]
     filename = f"billing_{profile_name}_{y:04d}-{m:02d}.csv"
@@ -109,3 +120,44 @@ def export_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@bp.route("/status", methods=["POST"])
+def set_status():
+    """Toggle invoice_sent / invoice_paid flags for a (client, year, month)."""
+    pid = _require_profile()
+    try:
+        client_id = int(request.form["client_id"])
+        year = int(request.form["year"])
+        month = int(request.form["month"])
+    except (KeyError, ValueError):
+        abort(400)
+    field = request.form.get("field")
+    if field not in ("invoice_sent", "invoice_paid"):
+        abort(400)
+    value = 1 if request.form.get("value") == "1" else 0
+
+    db = get_db()
+    # Ensure the client belongs to the active profile.
+    owned = db.execute(
+        "SELECT 1 FROM clients WHERE id = ? AND profile_id = ?",
+        (client_id, pid),
+    ).fetchone()
+    if not owned:
+        abort(404)
+
+    db.execute(
+        """
+        INSERT INTO billing_status (profile_id, client_id, year, month, invoice_sent, invoice_paid)
+        VALUES (?, ?, ?, ?, 0, 0)
+        ON CONFLICT(profile_id, client_id, year, month) DO NOTHING
+        """,
+        (pid, client_id, year, month),
+    )
+    db.execute(
+        f"UPDATE billing_status SET {field} = ? "
+        "WHERE profile_id = ? AND client_id = ? AND year = ? AND month = ?",
+        (value, pid, client_id, year, month),
+    )
+    db.commit()
+    return redirect(url_for("billing.index", year=year, month=month))
