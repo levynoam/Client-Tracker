@@ -75,10 +75,24 @@ def index():
     rows = _query_billing(pid, y, m)
     grand_hours = sum((r["total_hours"] or 0) for r in rows)
     grand_total = sum((r["total_amount"] or 0) for r in rows)
+    if m == 1:
+        prev_y, prev_m = y - 1, 12
+    else:
+        prev_y, prev_m = y, m - 1
+    if m == 12:
+        next_y, next_m = y + 1, 1
+    else:
+        next_y, next_m = y, m + 1
+    month_name = date(y, m, 1).strftime("%B")
     return render_template(
         "billing/index.html",
         year=y,
         month=m,
+        month_name=month_name,
+        prev_y=prev_y,
+        prev_m=prev_m,
+        next_y=next_y,
+        next_m=next_m,
         rows=rows,
         grand_hours=grand_hours,
         grand_total=grand_total,

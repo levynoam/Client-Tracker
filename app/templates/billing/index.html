@@ -3,12 +3,14 @@
 {% block content %}
 <h1>Monthly Billing <small>({{ active_profile.name if active_profile }})</small></h1>
 
-<form method="get" class="row">
-    <label>Year: <input type="number" name="year" value="{{ year }}" min="1900" max="2999"></label>
-    <label>Month: <input type="number" name="month" value="{{ month }}" min="1" max="12"></label>
-    <button type="submit">Show</button>
+<div class="cal-header">
+    <a class="nav" href="{{ url_for('billing.index', year=prev_y, month=prev_m) }}">&laquo; Prev</a>
+    <h2>{{ month_name }} {{ year }}</h2>
+    <a class="nav" href="{{ url_for('billing.index', year=next_y, month=next_m) }}">Next &raquo;</a>
+</div>
+<div class="row">
     <a class="btn" href="{{ url_for('billing.export_csv', year=year, month=month) }}">Download CSV</a>
-</form>
+</div>
 
 <table class="data">
     <thead>
