@@ -50,6 +50,17 @@ CREATE TABLE IF NOT EXISTS billing_status (
 );
 CREATE INDEX IF NOT EXISTS idx_billing_status_lookup
     ON billing_status(profile_id, year, month);
+
+CREATE TABLE IF NOT EXISTS telegram_processed_updates (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id  INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    update_id   INTEGER NOT NULL,
+    chat_id     INTEGER NOT NULL,
+    processed_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (profile_id, update_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tg_processed_profile_chat
+    ON telegram_processed_updates(profile_id, chat_id);
 """
 
 

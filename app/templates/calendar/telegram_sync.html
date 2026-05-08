@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Telegram Sync{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('calendar.month_view') }}">&laquo; Back to month</a></p>
+<h1>Telegram Sync</h1>
+<p>Select a user who sent unread bot messages, then run sync.</p>
+
+{% if users %}
+<form method="post" action="{{ url_for('calendar.telegram_sync_run') }}">
+    <table class="data">
+        <thead>
+            <tr>
+                <th></th>
+                <th>User</th>
+                <th>Unread Messages</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>
+                    <input type="radio" name="chat_id" value="{{ u.chat_id }}" {% if loop.first %}checked{% endif %}>
+                </td>
+                <td dir="auto">{{ u.label }}</td>
+                <td>{{ u.count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p>
+        <button type="submit">Run Sync</button>
+    </p>
+</form>
+{% else %}
+    <p><em>No unread Telegram messages were found.</em></p>
+{% endif %}
+{% endblock %}

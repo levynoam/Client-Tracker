@@ -72,6 +72,25 @@ clients/
 
 - Concurrent edits from multiple browser tabs use **last-write-wins**. This is acceptable for a single-user local tool.
 
+## Telegram Connectivity
+
+We will connect the app to a telegram bot.
+The bot name is MyClients_noam80_bot and the API key appears in the file $USER$\.telegram stored as 
+botname = API KEY
+Do not read the file directly into your context - write a program that reads and uses the API key
+
+At the end of each day, the user can write a list of clients in an EOL seperated list like so:
+Sheldon
+Howard
+Amy
+
+Upon pressing the 'sync to telegram' button in the Calendar tab, the app will show a list of users who messaged the bot; selecting the user, the app will read all the (unread) messages the Bot recieved and add sessions to names that match in the day the message was recieved, After completion, the app will reply in the bot channel with a list of the days updated and hours added in each day, in addition to errors
+
+There is no need to listen to the telegram channel. Updates will only be made by pressing on the 'sync' button.
+
+### Name Matching
+Name matching should accomodate minor typos; especially vowel letter in hebrew. For example, the hebrew names נעם and נועם should be matched.
+
 ## Appearance
 
 The tool is displayed as a web page with a header (containing the active-profile selector) and integrated tabs.
@@ -86,6 +105,7 @@ This is the default tab shown when the tool is opened (after a profile is select
 - The month can be selected via standard calendar navigation; the default is the current month.
 - Each day displays the **total number of hours** logged that day (and, secondarily, the session count).
 - Clicking on any day opens the day view for that day.
+- A button to sync to telegram appears in this tab
 
 #### 1.2 Day View
 

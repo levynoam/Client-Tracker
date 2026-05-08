@@ -7,6 +7,10 @@
     <a class="nav" href="{{ url_for('calendar.month_view', year=next_y, month=next_m) }}">Next &raquo;</a>
 </div>
 
+<p>
+    <a class="btn" href="{{ url_for('calendar.telegram_sync') }}">Sync To Telegram</a>
+</p>
+
 <table class="calendar">
     <thead>
         <tr>
