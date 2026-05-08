@@ -16,6 +16,8 @@
            class="{% if request.blueprint == 'clients' %}active{% endif %}">Clients</a>
         <a href="{{ url_for('billing.index') }}"
            class="{% if request.blueprint == 'billing' %}active{% endif %}">Billing</a>
+          <a href="{{ url_for('telegram.index') }}"
+              class="{% if request.blueprint == 'telegram' %}active{% endif %}">Telegram</a>
         <a href="{{ url_for('profiles.index') }}"
            class="{% if request.blueprint == 'profiles' %}active{% endif %}">Profiles</a>
     </nav>

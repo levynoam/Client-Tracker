@@ -124,6 +124,74 @@ def list_chats_with_unread(updates: list[dict[str, Any]]) -> list[dict[str, Any]
     return sorted(by_id.values(), key=lambda r: (r["latest_ts"], r["label"]), reverse=True)
 
 
+def list_chats_from_updates(updates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return unique chats that appear in any text message update."""
+    by_id: dict[int, dict[str, Any]] = {}
+    for upd in updates:
+        msg = upd.get("message")
+        if not isinstance(msg, dict):
+            continue
+        text = (msg.get("text") or "").strip()
+        if not text:
+            continue
+        chat = msg.get("chat") or {}
+        try:
+            chat_id = int(chat.get("id"))
+        except (TypeError, ValueError):
+            continue
+
+        row = by_id.get(chat_id)
+        if row is None:
+            row = {
+                "chat_id": chat_id,
+                "label": _chat_label(chat),
+                "latest_ts": int(msg.get("date") or 0),
+                "preview": text.splitlines()[0][:80],
+            }
+            by_id[chat_id] = row
+        else:
+            row["latest_ts"] = max(row["latest_ts"], int(msg.get("date") or 0))
+            if int(msg.get("date") or 0) >= row["latest_ts"]:
+                row["preview"] = text.splitlines()[0][:80]
+
+    return sorted(by_id.values(), key=lambda r: (r["latest_ts"], r["label"]), reverse=True)
+
+
+def messages_for_chat(updates: list[dict[str, Any]], chat_id: int) -> list[dict[str, Any]]:
+    """Return chronologically sorted text messages for a selected chat."""
+    items: list[dict[str, Any]] = []
+    for upd in updates:
+        msg = upd.get("message")
+        if not isinstance(msg, dict):
+            continue
+        chat = msg.get("chat") or {}
+        text = (msg.get("text") or "").strip()
+        if not text:
+            continue
+        try:
+            msg_chat_id = int(chat.get("id"))
+        except (TypeError, ValueError):
+            continue
+        if msg_chat_id != chat_id:
+            continue
+
+        sender = msg.get("from") or {}
+        first = (sender.get("first_name") or "").strip()
+        last = (sender.get("last_name") or "").strip()
+        who = f"{first} {last}".strip() or (sender.get("username") or "Unknown")
+        ts = int(msg.get("date") or 0)
+        items.append(
+            {
+                "text": text,
+                "timestamp": ts,
+                "sender": who,
+            }
+        )
+
+    items.sort(key=lambda row: row["timestamp"])
+    return items
+
+
 def match_client_name(raw_name: str, clients: list[dict[str, Any]]) -> ClientMatch:
     """Fuzzy match for names, with tolerance for Hebrew mater letters."""
     name = raw_name.strip()

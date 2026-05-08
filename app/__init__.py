@@ -7,7 +7,7 @@ from pathlib import Path
 from flask import Flask, g, redirect, request, url_for
 
 from . import db
-from .routes import billing, calendar, clients, profiles
+from .routes import billing, calendar, clients, profiles, telegram
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -32,6 +32,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(clients.bp)
     app.register_blueprint(calendar.bp)
     app.register_blueprint(billing.bp)
+    app.register_blueprint(telegram.bp)
 
     @app.before_request
     def _load_active_profile():

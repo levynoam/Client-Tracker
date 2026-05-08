@@ -1,0 +1,40 @@
+<div id="telegram-live"
+     hx-get="{{ url_for('telegram.poll', chat_id=selected_chat_id) if selected_chat_id else url_for('telegram.poll') }}"
+     hx-trigger="every 1s"
+     hx-swap="outerHTML">
+    {% if error %}
+        <p class="flash flash-error">Telegram error: {{ error }}</p>
+    {% endif %}
+
+    <div class="telegram-layout">
+        <aside class="telegram-chats">
+            {% if chats %}
+                {% for chat in chats %}
+                    <a class="telegram-chat{% if selected_chat_id == chat.chat_id %} active{% endif %}"
+                       href="{{ url_for('telegram.index', chat_id=chat.chat_id) }}">
+                        <div class="telegram-chat-title" dir="auto">{{ chat.label }}</div>
+                        <div class="telegram-chat-preview" dir="auto">{{ chat.preview }}</div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="telegram-empty">No chats yet.</div>
+            {% endif %}
+        </aside>
+
+        <section class="telegram-thread" id="telegram-messages">
+            {% if messages %}
+                {% for msg in messages %}
+                    <article class="telegram-msg">
+                        <div class="telegram-msg-meta">
+                            <strong dir="auto">{{ msg.sender }}</strong>
+                            <span>{{ msg.display_time }}</span>
+                        </div>
+                        <div class="telegram-msg-text" dir="auto">{{ msg.text }}</div>
+                    </article>
+                {% endfor %}
+            {% else %}
+                <div class="telegram-empty">Select a chat to view messages.</div>
+            {% endif %}
+        </section>
+    </div>
+</div>

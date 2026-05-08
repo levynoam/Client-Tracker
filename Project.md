@@ -155,6 +155,13 @@ This is the default tab shown when the tool is opened (after a profile is select
 - Archiving a profile hides it from the active-profile dropdown but preserves all data.
 - The currently active profile cannot be archived; the user must switch first.
 
+### 5. Telegram Tab
+
+- This tab allows the app user to view the full chat history of the telegram bot
+- The tab looks similar to a "Whatsapp web" GUI - list of chats on a panel on the left, and chat content on the right, with chat messages displaying individually in a scrollable area, which is automatically scrolled down to when opened.
+- When the user is actively vieweing this tab, the app polls telegram every 1sec so the data is fresh
+- The displayed messages do NOT affect the functionality of the 'sync to telegram' button in the calendar
+
 ## Out of Scope (explicitly)
 
 - Authentication / multi-user support.

@@ -117,3 +117,103 @@ table.calendar td.day a:hover { background: #f3f4f6; }
 .autocomplete-list li button:hover { background: #eff6ff; }
 
 /* RTL: any field with dir="auto" handles itself; nothing else needed. */
+
+/* Telegram tab */
+.telegram-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    min-height: 560px;
+}
+
+.telegram-chats {
+    border-right: 1px solid #e5e7eb;
+    background: #f8fafc;
+    overflow-y: auto;
+}
+
+.telegram-chat {
+    display: block;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-decoration: none;
+    color: #111827;
+}
+
+.telegram-chat:hover {
+    background: #eef2ff;
+}
+
+.telegram-chat.active {
+    background: #dbeafe;
+}
+
+.telegram-chat-title {
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.telegram-chat-preview {
+    color: #4b5563;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.telegram-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #f9fafb 0%, #eff6ff 100%);
+}
+
+.telegram-msg {
+    max-width: 78%;
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.telegram-msg-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.25rem;
+    color: #1e3a8a;
+    font-size: 0.82rem;
+}
+
+.telegram-msg-text {
+    white-space: pre-wrap;
+}
+
+.telegram-empty {
+    color: #6b7280;
+    padding: 1rem;
+}
+
+@media (max-width: 900px) {
+    .telegram-layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .telegram-chats {
+        max-height: 180px;
+        border-right: 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .telegram-thread {
+        min-height: 360px;
+    }
+}

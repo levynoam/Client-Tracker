@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Telegram{% endblock %}
+{% block content %}
+<h1>Telegram</h1>
+<p class="muted">Live read-only bot chat view (refreshes every 1 second).</p>
+{% include "telegram/_panel.html" %}
+
+<script>
+(function () {
+    function scrollToBottom() {
+        var box = document.getElementById('telegram-messages');
+        if (!box) return;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    scrollToBottom();
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        if (!event || !event.target || event.target.id !== 'telegram-live') return;
+        scrollToBottom();
+    });
+})();
+</script>
+{% endblock %}
