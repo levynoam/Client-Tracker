@@ -12,6 +12,14 @@ from ..db import get_db
 bp = Blueprint("billing", __name__, url_prefix="/billing")
 
 
+def _format_meeting_dates(dates_csv: str | None) -> str:
+    if not dates_csv:
+        return ""
+    dates = sorted(date.fromisoformat(d) for d in dates_csv.split(",") if d)
+    weekday_abbrev = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    return ",".join(f"{weekday_abbrev[d.weekday()]}({d.day})" for d in dates)
+
+
 def _require_profile():
     if not getattr(g, "active_profile", None):
         abort(400, "No active profile selected.")
@@ -39,7 +47,7 @@ def _parse_year_month(args) -> tuple[int, int]:
 
 def _query_billing(profile_id: int, year: int, month: int):
     """Return list of rows: client_id, client_name, total_hours, min_rate, max_rate,
-    total_amount, invoice_sent, invoice_paid."""
+    total_amount, meeting_dates_summary, invoice_sent, invoice_paid."""
     db = get_db()
     prefix = f"{year:04d}-{month:02d}-"
     rows = db.execute(
@@ -50,6 +58,7 @@ def _query_billing(profile_id: int, year: int, month: int):
                MIN(s.rate)  AS min_rate,
                MAX(s.rate)  AS max_rate,
                SUM(s.hours * s.rate) AS total_amount,
+               GROUP_CONCAT(DISTINCT s.date) AS meeting_dates_csv,
                COALESCE(b.invoice_sent, 0) AS invoice_sent,
                COALESCE(b.invoice_paid, 0) AS invoice_paid
         FROM sessions s
@@ -65,7 +74,12 @@ def _query_billing(profile_id: int, year: int, month: int):
         """,
         (year, month, profile_id, prefix + "%"),
     ).fetchall()
-    return rows
+    formatted_rows = []
+    for row in rows:
+        item = dict(row)
+        item["meeting_dates_summary"] = _format_meeting_dates(item.get("meeting_dates_csv"))
+        formatted_rows.append(item)
+    return formatted_rows
 
 
 @bp.route("/")

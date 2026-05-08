@@ -23,6 +23,9 @@ def test_billing_index(client):
     assert "350" in body
     assert "600" in body
     assert "950" in body
+    assert "Meetings" in body
+    assert "Fr(10),Mo(20)" in body
+    assert "We(15)" in body
 
 
 def test_csv_export(client):

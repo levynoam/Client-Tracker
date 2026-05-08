@@ -74,22 +74,34 @@ clients/
 
 ## Telegram Connectivity
 
-We will connect the app to a telegram bot.
-The bot name is MyClients_noam80_bot and the API key appears in the file $USER$\.telegram stored as 
-botname = API KEY
-Do not read the file directly into your context - write a program that reads and uses the API key
+The app is connected to a Telegram bot.
 
-At the end of each day, the user can write a list of clients in an EOL seperated list like so:
-Sheldon
-Howard
-Amy
+- Bot name: `MyClients_noam80_bot`
+- Bot token source: `%USERPROFILE%\\.telegram` file, with lines in the format `botname = API KEY`
+- The app reads this file at runtime and does not hardcode the token.
 
-Upon pressing the 'sync to telegram' button in the Calendar tab, the app will show a list of users who messaged the bot; selecting the user, the app will read all the (unread) messages the Bot recieved and add sessions to names that match in the day the message was recieved, After completion, the app will reply in the bot channel with a list of the days updated and hours added in each day, in addition to errors
+Manual sync flow:
 
-There is no need to listen to the telegram channel. Updates will only be made by pressing on the 'sync' button.
+1. In Calendar month view, click **Sync To Telegram**.
+2. The app opens a dedicated Telegram Sync page and lists users/chats with unread text messages.
+3. Select a user and run sync.
+4. The app reads that user's unread bot messages, parses each message as an EOL-separated list of client names, and creates sessions on the local day represented by each message timestamp.
+5. Each matched line creates one session with `hours = 1`, `rate` snapshotted from the matched client's current rate, and notes set to `Telegram sync`.
+6. After sync, the app sends a reply in the same Telegram chat with:
+  - Days updated and total hours added per day
+  - Errors (for example, unmatched names)
+
+Unread tracking and idempotency:
+
+- Processed Telegram update IDs are persisted per profile in SQLite.
+- Future sync runs skip already-processed updates.
+- The app does not run a background listener; updates are only processed when the user clicks sync.
 
 ### Name Matching
-Name matching should accomodate minor typos; especially vowel letter in hebrew. For example, the hebrew names נעם and נועם should be matched.
+
+Name matching supports minor typos and Hebrew vowel-letter variation. For example, `נעם` and `נועם` are treated as a match.
+
+If a name cannot be matched with sufficient confidence (or is ambiguous), it is skipped and reported as an error in the Telegram sync reply (for example: `Can't match {name} on day {date}`).
 
 ## Appearance
 
@@ -105,7 +117,7 @@ This is the default tab shown when the tool is opened (after a profile is select
 - The month can be selected via standard calendar navigation; the default is the current month.
 - Each day displays the **total number of hours** logged that day (and, secondarily, the session count).
 - Clicking on any day opens the day view for that day.
-- A button to sync to telegram appears in this tab
+- A **Sync To Telegram** button appears in this tab and opens the Telegram Sync page.
 
 #### 1.2 Day View
 
@@ -132,6 +144,7 @@ This is the default tab shown when the tool is opened (after a profile is select
   - Client name
   - Total hours
   - Effective rate(s) used (since rates are per-session, this may be a single value or a range)
+  - Meetings summary: comma-separated meeting dates formatted as day-of-week abbreviation plus day-of-month (example: `Fr(8),Su(10),We(13)`)
   - Total billing amount
 - Includes a **grand total** row.
 - Provides a **"Download CSV"** button to export the table for the selected month.

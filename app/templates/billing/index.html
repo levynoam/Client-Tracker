@@ -18,6 +18,7 @@
             <th>Client</th>
             <th>Hours</th>
             <th>Rate</th>
+            <th>Meetings</th>
             <th>Total</th>
             <th>Invoice sent</th>
             <th>Invoice paid</th>
@@ -35,6 +36,7 @@
                     {{ '%g' % r.min_rate }} – {{ '%g' % r.max_rate }}
                 {% endif %}
             </td>
+            <td>{{ r.meeting_dates_summary }}</td>
             <td>{{ '%g' % r.total_amount }}</td>
             {% for field in ['invoice_sent', 'invoice_paid'] %}
             <td class="status-cell">
@@ -52,7 +54,7 @@
             {% endfor %}
         </tr>
     {% else %}
-        <tr><td colspan="6"><em>No sessions in this month.</em></td></tr>
+        <tr><td colspan="7"><em>No sessions in this month.</em></td></tr>
     {% endfor %}
     </tbody>
     {% if rows %}
@@ -60,6 +62,7 @@
         <tr>
             <th>Total</th>
             <th>{{ '%g' % grand_hours }}</th>
+            <th></th>
             <th></th>
             <th>{{ '%g' % grand_total }}</th>
             <th></th>
