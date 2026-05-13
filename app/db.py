@@ -61,6 +61,23 @@ CREATE TABLE IF NOT EXISTS telegram_processed_updates (
 );
 CREATE INDEX IF NOT EXISTS idx_tg_processed_profile_chat
     ON telegram_processed_updates(profile_id, chat_id);
+
+CREATE TABLE IF NOT EXISTS telegram_messages_cache (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id    INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    update_id     INTEGER NOT NULL,
+    chat_id       INTEGER NOT NULL,
+    chat_label    TEXT NOT NULL,
+    sender        TEXT NOT NULL,
+    message_text  TEXT NOT NULL,
+    message_ts    INTEGER NOT NULL,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (profile_id, update_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tg_cache_profile_chat_ts
+    ON telegram_messages_cache(profile_id, chat_id, message_ts);
+CREATE INDEX IF NOT EXISTS idx_tg_cache_profile_ts
+    ON telegram_messages_cache(profile_id, message_ts);
 """
 
 
